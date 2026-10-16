@@ -22,9 +22,10 @@ a reader, not the digit.
 
 ### Fixed
 
-- **No false "vcsa unreachable" warning when a template renames vCenter.** The reachability
-  check after the NSX VDR MAC fix now pings the template's `vcenterHostname` instead of a
-  hardcoded `vcsa`.
+- **The NSX VDR MAC fix follows the template's vCenter and NSX hostnames.** It used a
+  hardcoded `vcsa` and `nsx`, so a template renaming either got a false "vcsa unreachable"
+  warning, or an NSX MAC fix that never found its manager. It now reads `vcenterHostname`
+  and the NSX `vipFqdn`.
 
 ### Changed
 
