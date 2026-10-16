@@ -2056,17 +2056,19 @@ async def _wait_and_fix_nsx_vdr_mac(zpod: dict, vcf_json: dict, mac: str):
     finally:
         conn.close()
 
-    vcsa_hostname = f"vcsa.{zpod['domain']}"
-    with console.status(f"  Testing [cyan]{vcsa_hostname}[/cyan]..."):
-        elapsed_ms = await _ping(vcsa_hostname, attempts=4, delay=5)
+    vcenter_hostname = vcf_json.get("vcenterSpec", {}).get(
+        "vcenterHostname", f"vcsa.{zpod['domain']}"
+    )
+    with console.status(f"  Testing [cyan]{vcenter_hostname}[/cyan]..."):
+        elapsed_ms = await _ping(vcenter_hostname, attempts=4, delay=5)
     if elapsed_ms is not None:
         console.print(
-            f"[green]✓[/green] {vcsa_hostname} reachable after NSX VDR MAC "
+            f"[green]✓[/green] {vcenter_hostname} reachable after NSX VDR MAC "
             f"fix ({elapsed_ms:.1f}ms)"
         )
     else:
         console.print(
-            f"[yellow]⚠️ {vcsa_hostname} still unreachable after NSX VDR MAC "
+            f"[yellow]⚠️ {vcenter_hostname} still unreachable after NSX VDR MAC "
             f"fix — will re-check at end of deploy[/yellow]"
         )
 

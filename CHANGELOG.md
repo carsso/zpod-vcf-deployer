@@ -20,6 +20,12 @@ a reader, not the digit.
 
 ## [Unreleased]
 
+### Fixed
+
+- **No false "vcsa unreachable" warning when a template renames vCenter.** The reachability
+  check after the NSX VDR MAC fix now pings the template's `vcenterHostname` instead of a
+  hardcoded `vcsa`.
+
 ### Changed
 
 - **Releases follow the shared zPodFactory standard.** `tools/release.py` (cut, `--check`,
