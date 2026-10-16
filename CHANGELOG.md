@@ -22,6 +22,9 @@ a reader, not the digit.
 
 ### Fixed
 
+- **The vSAN ESA FTT=0 fix is re-applied whatever the deploy outcome.** It used to run again
+  only after a successful deploy; it now also runs before each resume and on failure, so
+  appliances deployed in between don't stay on vSAN's AutoRAID policy.
 - **The NSX VDR MAC fix follows the template's vCenter and NSX hostnames.** It used a
   hardcoded `vcsa` and `nsx`, so a template renaming either got a false "vcsa unreachable"
   warning, or an NSX MAC fix that never found its manager. It now reads `vcenterHostname`
