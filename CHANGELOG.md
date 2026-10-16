@@ -20,6 +20,13 @@ a reader, not the digit.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The NSX VDR MAC fix follows the template's vCenter and NSX hostnames.** It used a
+  hardcoded `vcsa` and `nsx`, so a template renaming either got a false "vcsa unreachable"
+  warning, or an NSX MAC fix that never found its manager. It now reads `vcenterHostname`
+  and the NSX `vipFqdn`.
+
 ### Changed
 
 - **Releases follow the shared zPodFactory standard.** `tools/release.py` (cut, `--check`,
