@@ -1968,7 +1968,9 @@ async def _nsx_curl_via_zcore(
         return None
 
 
-async def _set_nsx_vdr_mac(conn, zpod: dict, mac: str) -> Tuple[str, str]:
+async def _set_nsx_vdr_mac(
+    conn, zpod: dict, vcf_json: dict, mac: str
+) -> Tuple[str, str]:
     """GET/PUT the nested NSX Manager's global VDR MAC via curl over an
     already-open SSH session to zcore. Applied unconditionally — never
     gated on ping status, since the fix is meant to prevent the collision
@@ -1978,7 +1980,9 @@ async def _set_nsx_vdr_mac(conn, zpod: dict, mac: str) -> Tuple[str, str]:
     Raises RuntimeError if the NSX Manager API isn't reachable/ready yet —
     callers decide their own retry policy around that.
     """
-    nsx_hostname = f"nsx.{zpod['domain']}"
+    nsx_hostname = vcf_json.get("nsxtSpec", {}).get(
+        "vipFqdn", f"nsx.{zpod['domain']}"
+    )
     password = zpod.get("password", "")
 
     config = await _nsx_curl_via_zcore(conn, nsx_hostname, password, "GET")
@@ -2045,7 +2049,7 @@ async def _wait_and_fix_nsx_vdr_mac(zpod: dict, vcf_json: dict, mac: str):
     try:
         while True:
             try:
-                await _set_nsx_vdr_mac(conn, zpod, mac)
+                await _set_nsx_vdr_mac(conn, zpod, vcf_json, mac)
                 break
             except RuntimeError as e:
                 if global_debug:
@@ -2056,17 +2060,19 @@ async def _wait_and_fix_nsx_vdr_mac(zpod: dict, vcf_json: dict, mac: str):
     finally:
         conn.close()
 
-    vcsa_hostname = f"vcsa.{zpod['domain']}"
-    with console.status(f"  Testing [cyan]{vcsa_hostname}[/cyan]..."):
-        elapsed_ms = await _ping(vcsa_hostname, attempts=4, delay=5)
+    vcenter_hostname = vcf_json.get("vcenterSpec", {}).get(
+        "vcenterHostname", f"vcsa.{zpod['domain']}"
+    )
+    with console.status(f"  Testing [cyan]{vcenter_hostname}[/cyan]..."):
+        elapsed_ms = await _ping(vcenter_hostname, attempts=4, delay=5)
     if elapsed_ms is not None:
         console.print(
-            f"[green]✓[/green] {vcsa_hostname} reachable after NSX VDR MAC "
+            f"[green]✓[/green] {vcenter_hostname} reachable after NSX VDR MAC "
             f"fix ({elapsed_ms:.1f}ms)"
         )
     else:
         console.print(
-            f"[yellow]⚠️ {vcsa_hostname} still unreachable after NSX VDR MAC "
+            f"[yellow]⚠️ {vcenter_hostname} still unreachable after NSX VDR MAC "
             f"fix — will re-check at end of deploy[/yellow]"
         )
 
@@ -2099,7 +2105,7 @@ async def _run_nsx_mac_diagnostic(zpod: dict, vcf_json: dict, mac: str):
         try:
             for attempt in range(3):
                 try:
-                    await _set_nsx_vdr_mac(conn, zpod, mac)
+                    await _set_nsx_vdr_mac(conn, zpod, vcf_json, mac)
                     break
                 except RuntimeError as e:
                     if attempt == 2:
