@@ -4017,6 +4017,12 @@ async def initiate_sddc_deployment(
                 await _run_vsan_ftt0_sweep(vcf_json)
             return
 
+        # Not just on success: a resume re-deploys on whatever policy is in
+        # place, and a failed deploy still leaves VMs on AutoRAID.
+        if _vsan_ftt0_requested(vcf_json):
+            await _cancel_fix_tasks(vsan_fix_task)
+            await _run_vsan_ftt0_sweep(vcf_json)
+
         if sddc_status == "COMPLETED_WITH_FAILURE":
             if resume_attempt >= max_resume_attempts:
                 console.print(

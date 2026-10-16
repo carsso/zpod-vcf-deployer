@@ -20,6 +20,12 @@ a reader, not the digit.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The vSAN ESA FTT=0 fix is re-applied whatever the deploy outcome.** It used to run again
+  only after a successful deploy; it now also runs before each resume and on failure, so
+  appliances deployed in between don't stay on vSAN's AutoRAID policy.
+
 ### Changed
 
 - **Releases follow the shared zPodFactory standard.** `tools/release.py` (cut, `--check`,
